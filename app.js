@@ -1,5 +1,5 @@
 // State Management
-const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || 'https://script.google.com/macros/s/AKfycbzgxEpw48Q3_bWFRBKDvSKYI7ASOxEGCnX32ytAMiumQMC0vOfFYk7rfnj_Z1VUdCBR/exec';
+const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || 'https://script.google.com/macros/s/AKfycbzWe_koWxBbbom82fScaVpZvk5N5whf4KSWm6Z8pBLdYsLIi0BWvOCvhCqwswtv01xBgg/exec';
 let transactionsData = [];
 let localTransactions = JSON.parse(localStorage.getItem('local_transactions')) || [];
 let sheetConfig = JSON.parse(localStorage.getItem('sheet_config')) || { id: '', name: 'הוצאות הכנסות 2026' };
@@ -328,7 +328,28 @@ async function loadData() {
         transactionsData = data.transactions || [];
         lastSyncTime = data.last_sync || '';
         window.portfolioData = data.portfolio || fallbackData.portfolio;
-        window.portfolios    = data.portfolios || {};
+
+        // המר portfolios מה-API לפורמט הנכון וסנן שורות לא רלוונטיות
+        const SKIP_ASSETS = ['פער','סה"כ','סהכ','Total','האמא'];
+        if (data.portfolios) {
+            window.portfolios = {};
+            Object.keys(data.portfolios).forEach(yr => {
+                const entry = data.portfolios[yr];
+                const sections = entry.sections || {};
+                window.portfolios[yr] = { months: entry.months, family_assets:{}, roni_assets:{}, miki_assets:{}, zohar_assets:{} };
+                Object.keys(sections).forEach(sec => {
+                    const key = sec === 'family' ? 'family_assets' : sec + '_assets';
+                    const assets = sections[sec] || {};
+                    Object.keys(assets).forEach(name => {
+                        if (!SKIP_ASSETS.some(s => name.startsWith(s))) {
+                            window.portfolios[yr][key][name] = assets[name];
+                        }
+                    });
+                });
+            });
+        } else {
+            window.portfolios = data.portfolios || {};
+        }
         const _currentYear = new Date().getFullYear();
         // אם אין synced_years, גזור מהטרנזקציות עצמן
         const yearsFromTx = [...new Set((data.transactions||[]).map(t => parseInt(t.date.split('-')[0])))].filter(y => y <= _currentYear);
