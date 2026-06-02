@@ -728,59 +728,131 @@ function renderPortfolio() {
     const portfolios = window.portfolios || {};
     let pData = portfolios[String(selectedYear)];
     if (!pData) {
-        const availYears = Object.keys(portfolios).map(Number).sort((a, b) => b - a);
+        const availYears = Object.keys(portfolios).map(Number).sort((a,b) => b-a);
         const closest = availYears.find(y => y <= selectedYear) || availYears[0];
         pData = portfolios[String(closest)] || window.portfolioData;
     }
     if (!pData) return;
 
     const months = pData.months || [];
+    const MONTH_SHORT = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
 
-    // Find latest month with family asset data
+    // Find latest month with data
     let latestIdx = 0;
     for (let m = months.length - 1; m >= 0; m--) {
-        if (Object.values(pData.family_assets || {}).some(arr => (arr[m] || 0) > 0)) {
-            latestIdx = m; break;
+        if (Object.values(pData.family_assets || {}).some(a => (a[m]||0) > 0)) { latestIdx = m; break; }
+    }
+
+    const sections = [
+        { key: 'family_assets', label: '👨‍👩‍👧‍👦 נכסים משפחתיים', color: '#8b5cf6' },
+        { key: 'roni_assets',   label: '👧 רוני',   color: '#10b981' },
+        { key: 'miki_assets',   label: '👦 מיקי',   color: '#f59e0b' },
+        { key: 'zohar_assets',  label: '👶 זוהר',   color: '#ef4444' }
+    ];
+
+    let html = '';
+    let grandTotal = 0;
+    const sectionTotals = {};
+
+    sections.forEach(sec => {
+        const assets = pData[sec.key] || {};
+        if (Object.keys(assets).length === 0) return;
+
+        const colHeaders = MONTH_SHORT.map(m => `<th style="min-width:72px;text-align:center;font-size:11px">${m}</th>`).join('');
+        let rows = '';
+        let secTotal = 0;
+
+        Object.entries(assets).forEach(([name, vals]) => {
+            const cells = vals.map((v, mi) => {
+                const yr = selectedYear;
+                return `<td style="text-align:center;font-size:12px;cursor:pointer;padding:6px 4px"
+                    class="portfolio-cell"
+                    data-asset="${name.replace(/"/g,'&quot;')}"
+                    data-month="${mi}"
+                    data-year="${yr}"
+                    data-val="${v||0}"
+                    onclick="editPortfolioCell(this)">${v > 0 ? formatCompact(v) : '—'}</td>`;
+            }).join('');
+            const rowTotal = vals.reduce((s,v)=>s+(v||0),0);
+            secTotal += vals[latestIdx] || 0;
+            rows += `<tr>
+                <td style="font-weight:500;font-size:13px;padding:6px 8px;white-space:nowrap">${name}</td>
+                ${cells}
+                <td style="font-weight:700;font-size:12px;text-align:center;color:${sec.color}">${formatCompact(vals[latestIdx]||0)}</td>
+            </tr>`;
+        });
+
+        sectionTotals[sec.key] = secTotal;
+        grandTotal += secTotal;
+
+        html += `<div style="margin-bottom:24px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;padding:10px 12px;background:rgba(139,92,246,0.08);border-radius:8px;border-right:3px solid ${sec.color}">
+                <span style="font-size:16px;font-weight:700;color:${sec.color}">${sec.label}</span>
+                <span style="margin-right:auto;font-weight:700;color:${sec.color}">${formatCurrency(secTotal)}</span>
+            </div>
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+                <thead><tr style="background:#1e293b">
+                    <th style="text-align:right;padding:6px 8px;min-width:160px">נכס</th>
+                    ${colHeaders}
+                    <th style="min-width:80px;text-align:center;font-size:11px">עדכני</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+    });
+
+    document.getElementById('portfolio-sheet-view').innerHTML = html;
+
+    const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+    setEl('metric-net-worth',    formatCurrency(grandTotal));
+    setEl('metric-kids-savings', formatCurrency((sectionTotals.roni_assets||0)+(sectionTotals.miki_assets||0)+(sectionTotals.zohar_assets||0)));
+    setEl('net-worth-update-time', `מעודכן ל-${months[latestIdx]||''}`);
+    setEl('sp-grand-total', formatCurrency(grandTotal));
+}
+
+async function editPortfolioCell(td) {
+    if (td.querySelector('input')) return;
+    const prev = parseFloat(td.dataset.val) || 0;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.value = prev || '';
+    inp.style.cssText = 'width:65px;background:#1e293b;color:#fff;border:1.5px solid #8b5cf6;border-radius:4px;padding:2px 4px;font-size:12px;text-align:center';
+    td.textContent = '';
+    td.appendChild(inp);
+    inp.focus(); inp.select();
+
+    async function commit() {
+        const val = inp.value.trim() === '' ? 0 : parseFloat(inp.value) || 0;
+        td.dataset.val = val;
+        td.textContent = val > 0 ? formatCompact(val) : '—';
+        if (val === prev) return;
+
+        // Update local data
+        const yr = String(td.dataset.year);
+        const mi = parseInt(td.dataset.month);
+        const assetName = td.dataset.asset;
+        const pData = window.portfolios[yr];
+        if (pData) {
+            ['family_assets','roni_assets','miki_assets','zohar_assets'].forEach(k => {
+                if (pData[k] && pData[k][assetName]) pData[k][assetName][mi] = val;
+            });
+        }
+        renderPortfolio();
+
+        // Save to Google Sheets
+        if (APPS_SCRIPT_URL) {
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method:'POST', headers:{'Content-Type':'text/plain'},
+                    body: JSON.stringify({ type:'portfolio', year: td.dataset.year, month: mi+1, asset: assetName, value: val })
+                });
+            } catch(e) {}
         }
     }
 
-    const latestMonthName = months[latestIdx] || '';
-    const updateEl = document.getElementById('net-worth-update-time');
-    if (updateEl) updateEl.innerText = `מעודכן ל-${latestMonthName}`;
-
-    // Helper: fill a tbody and return total
-    const fillTable = (tbodyId, assetsObj) => {
-        const tbody = document.getElementById(tbodyId);
-        if (!tbody) return 0;
-        tbody.innerHTML = '';
-        let total = 0;
-        for (const [name, arr] of Object.entries(assetsObj)) {
-            const val = arr[latestIdx] || 0;
-            if (val <= 0) continue;
-            total += val;
-            tbody.innerHTML += `<tr>
-                <td style="font-weight:500">${name}</td>
-                <td class="amount-col income">${formatCurrency(val)}</td>
-            </tr>`;
-        }
-        return total;
-    };
-
-    const familyTotal = fillTable('family-assets-tbody', pData.family_assets || {});
-    const roniTotal   = fillTable('roni-assets-tbody',   pData.roni_assets   || {});
-    const mikiTotal   = fillTable('miki-assets-tbody',   pData.miki_assets   || {});
-    const zoharTotal  = fillTable('zohar-assets-tbody',  pData.zohar_assets  || {});
-
-    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-    const grandTotal = familyTotal + roniTotal + mikiTotal + zoharTotal;
-    setEl('family-assets-total', formatCurrency(familyTotal));
-    setEl('roni-total-badge',    formatCurrency(roniTotal));
-    setEl('miki-total-badge',    formatCurrency(mikiTotal));
-    setEl('zohar-total-badge',   formatCurrency(zoharTotal));
-    setEl('metric-net-worth',    formatCurrency(grandTotal));
-    setEl('metric-kids-savings', formatCurrency(roniTotal + mikiTotal + zoharTotal));
-    setEl('sp-grand-total',      formatCurrency(grandTotal));
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e => { if (e.key==='Enter') inp.blur(); if (e.key==='Escape') { td.textContent = prev>0?formatCompact(prev):'—'; }});
 }
+
 
 // ── Central period refresh — updates every table/chart to selectedYear+Month ──
 function refreshByPeriod() {

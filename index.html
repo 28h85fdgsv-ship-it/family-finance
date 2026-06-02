@@ -296,85 +296,19 @@
 
             <!-- Full Portfolio View (Hidden by default) -->
             <div class="content-body hidden" id="portfolio-view">
-                <!-- Summary metrics -->
-                <section class="metrics-grid">
+                <section class="metrics-grid" style="margin-bottom:16px">
                     <div class="metric-card savings">
-                        <div class="metric-header"><span class="metric-title">סה"כ נכסים משפחתיים</span><span class="metric-icon">💎</span></div>
+                        <div class="metric-header"><span class="metric-title">סה"כ נכסים</span><span class="metric-icon">💎</span></div>
                         <div class="metric-value" id="metric-net-worth">₪0.00</div>
                         <div class="metric-trend positive" id="net-worth-update-time">—</div>
                     </div>
                     <div class="metric-card balance">
-                        <div class="metric-header"><span class="metric-title">סה"כ חסכונות ילדים</span><span class="metric-icon">🧒</span></div>
+                        <div class="metric-header"><span class="metric-title">ילדים</span><span class="metric-icon">🧒</span></div>
                         <div class="metric-value" id="metric-kids-savings">₪0.00</div>
                         <div class="metric-trend positive">רוני · מיקי · זוהר</div>
                     </div>
                 </section>
-
-                <!-- Family assets table -->
-                <section class="portfolio-person-section family-section">
-                    <div class="portfolio-person-header">
-                        <span class="portfolio-person-icon">👨‍👩‍👧‍👦</span>
-                        <span class="portfolio-person-name">נכסים משפחתיים</span>
-                        <span class="portfolio-person-total badge badge-income" id="family-assets-total">₪0</span>
-                    </div>
-                    <div class="table-container">
-                        <table class="transactions-table">
-                            <thead><tr><th>נכס</th><th class="amount-col">שווי</th></tr></thead>
-                            <tbody id="roni-assets-tbody-placeholder" style="display:none"></tbody>
-                            <tbody id="family-assets-tbody"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Children: one full card each -->
-                <div class="portfolio-children-grid">
-                    <!-- Roni -->
-                    <section class="portfolio-person-section roni-section">
-                        <div class="portfolio-person-header">
-                            <span class="portfolio-person-icon">👧</span>
-                            <span class="portfolio-person-name">רוני</span>
-                            <span class="portfolio-person-total badge badge-income" id="roni-total-badge">₪0</span>
-                        </div>
-                        <div class="table-container">
-                            <table class="transactions-table">
-                                <thead><tr><th>נכס</th><th class="amount-col">שווי</th></tr></thead>
-                                <tbody id="roni-assets-tbody"></tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <!-- Miki -->
-                    <section class="portfolio-person-section miki-section">
-                        <div class="portfolio-person-header">
-                            <span class="portfolio-person-icon">👦</span>
-                            <span class="portfolio-person-name">מיקי</span>
-                            <span class="portfolio-person-total badge badge-income" id="miki-total-badge">₪0</span>
-                        </div>
-                        <div class="table-container">
-                            <table class="transactions-table">
-                                <thead><tr><th>נכס</th><th class="amount-col">שווי</th></tr></thead>
-                                <tbody id="miki-assets-tbody"></tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <!-- Zohar -->
-                    <section class="portfolio-person-section zohar-section">
-                        <div class="portfolio-person-header">
-                            <span class="portfolio-person-icon">👶</span>
-                            <span class="portfolio-person-name">זוהר</span>
-                            <span class="portfolio-person-total badge badge-income" id="zohar-total-badge">₪0</span>
-                        </div>
-                        <div class="table-container">
-                            <table class="transactions-table">
-                                <thead><tr><th>נכס</th><th class="amount-col">שווי</th></tr></thead>
-                                <tbody id="zohar-assets-tbody"></tbody>
-                            </table>
-                        </div>
-                    </section>
-                </div>
-
-                <!-- hidden canvases kept for JS compatibility -->
+                <div id="portfolio-sheet-view" style="overflow-x:auto"></div>
                 <canvas id="netWorthTrendChart" style="display:none"></canvas>
                 <canvas id="assetBreakdownChart" style="display:none"></canvas>
             </div>
