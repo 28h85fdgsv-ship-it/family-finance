@@ -1,5 +1,5 @@
 // State Management
-const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || 'https://script.google.com/macros/s/AKfycbzWe_koWxBbbom82fScaVpZvk5N5whf4KSWm6Z8pBLdYsLIi0BWvOCvhCqwswtv01xBgg/exec';
+const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || 'https://script.google.com/macros/s/AKfycbyoQEq8SlDbLWX_9zO5gAotxJT2PeWKoUbO5nsH2ZkxiQ8370_bnqXMD9582KWOcFP6/exec';
 let transactionsData = [];
 let localTransactions = JSON.parse(localStorage.getItem('local_transactions')) || [];
 let sheetConfig = JSON.parse(localStorage.getItem('sheet_config')) || { id: '', name: 'הוצאות הכנסות 2026' };
