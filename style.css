@@ -1467,3 +1467,7 @@ select:focus {
 .entry-status.saving  { color: var(--text-muted); }
 .entry-status.success { color: #10b981; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
 .entry-status.error   { color: #f43f5e; background: rgba(244,63,94,0.08);  border: 1px solid rgba(244,63,94,0.2); }
+
+/* Editable annual table cells */
+.editable-cell { cursor: pointer; transition: background 0.1s; }
+.editable-cell:hover { background: rgba(139,92,246,0.2) !important; outline: 1px dashed #8b5cf6; }

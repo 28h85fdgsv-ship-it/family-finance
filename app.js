@@ -1295,6 +1295,38 @@ function renderComparison(y1, y2) {
 
 // ── Annual Table ──────────────────────────────────────────────────────────
 
+function startEditCell(td) {
+    if (td.querySelector('input')) return;
+    const prev = parseFloat(td.dataset.val) || 0;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.value = prev || '';
+    inp.style.cssText = 'width:70px;background:#1e293b;color:#fff;border:1.5px solid #8b5cf6;border-radius:4px;padding:2px 4px;font-size:12px;text-align:center';
+    td.textContent = '';
+    td.appendChild(inp);
+    inp.focus(); inp.select();
+    async function commit() {
+        const val = inp.value.trim() === '' ? 0 : parseFloat(inp.value) || 0;
+        td.dataset.val = val;
+        td.textContent = val > 0 ? formatCompact(val) : '—';
+        td.className = `month-cell ${val > 0 ? 'has-value' : 'empty-cell'} editable-cell`;
+        if (val === prev) return;
+        try {
+            const payload = {year: parseInt(td.dataset.year), month: parseInt(td.dataset.month), data: {}, new_cats: []};
+            payload.data[td.dataset.cat] = val;
+            const res = await fetch(APPS_SCRIPT_URL || '/api/save-month', {method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload)});
+            const json = await res.json();
+            if (json.ok) {
+                // Update row total
+                const year = parseInt(td.dataset.year);
+                renderAnnualTable(year);
+            }
+        } catch(e) { console.error(e); }
+    }
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { td.textContent = prev > 0 ? formatCompact(prev) : '—'; } });
+}
+
+
 function renderAnnualTable(year) {
     document.getElementById('annual-year-label').textContent = year;
 
@@ -1347,12 +1379,14 @@ function renderAnnualTable(year) {
         const total  = vals.reduce((a, b) => a + b, 0);
         const active = vals.filter(v => v > 0).length || 1;
         const avg    = total / active;
-        const cells  = vals.map(v =>
-            `<td class="month-cell ${v > 0 ? 'has-value' : 'empty-cell'}">${v > 0 ? formatCompact(v) : '—'}</td>`
+        const cells  = vals.map((v, mi) =>
+            `<td class="month-cell ${v > 0 ? 'has-value' : 'empty-cell'} editable-cell"
+                data-cat="${cat}" data-month="${mi+1}" data-year="${year}" data-val="${v}"
+                onclick="startEditCell(this)">${v > 0 ? formatCompact(v) : '—'}</td>`
         ).join('');
         return `<tr class="data-row ${type}-row">
             <td class="cat-col">${cat}</td>${cells}
-            <td class="total-cell">${total > 0 ? formatCompact(total) : '—'}</td>
+            <td class="total-cell" id="total-${year}-${cat.replace(/[^a-z0-9]/gi,'_')}">${total > 0 ? formatCompact(total) : '—'}</td>
             <td class="avg-cell">${total > 0 ? formatCompact(avg) : '—'}</td>
         </tr>`;
     };
