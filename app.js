@@ -1563,7 +1563,7 @@ async function saveMonth() {
         const apiUrl = APPS_SCRIPT_URL || '/api/save-month';
         const res = await fetch(apiUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ year, month, data, new_cats })
         });
         const json = await res.json();
