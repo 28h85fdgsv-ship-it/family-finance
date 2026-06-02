@@ -1,5 +1,5 @@
 // State Management
-const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || '';
+const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || 'https://script.google.com/macros/s/AKfycbzgxEpw48Q3_bWFRBKDvSKYI7ASOxEGCnX32ytAMiumQMC0vOfFYk7rfnj_Z1VUdCBR/exec';
 let transactionsData = [];
 let localTransactions = JSON.parse(localStorage.getItem('local_transactions')) || [];
 let sheetConfig = JSON.parse(localStorage.getItem('sheet_config')) || { id: '', name: 'הוצאות הכנסות 2026' };
@@ -317,10 +317,11 @@ async function checkCredentialsFile() {
     }
 }
 
-// Load Data from data.json or fallback
+// Load Data from Apps Script or data.json fallback
 async function loadData() {
     try {
-        const response = await fetch('data.json');
+        const url = APPS_SCRIPT_URL || 'data.json';
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Data file not found');
         const data = await response.json();
 
