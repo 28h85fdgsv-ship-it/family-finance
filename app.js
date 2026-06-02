@@ -330,7 +330,11 @@ async function loadData() {
         window.portfolioData = data.portfolio || fallbackData.portfolio;
         window.portfolios    = data.portfolios || {};
         const _currentYear = new Date().getFullYear();
-        window.syncedYears   = (data.synced_years || []).filter(y => y <= _currentYear);
+        // אם אין synced_years, גזור מהטרנזקציות עצמן
+        const yearsFromTx = [...new Set((data.transactions||[]).map(t => parseInt(t.date.split('-')[0])))].filter(y => y <= _currentYear);
+        window.syncedYears = (data.synced_years && data.synced_years.length > 0)
+            ? data.synced_years.filter(y => y <= _currentYear)
+            : yearsFromTx.sort((a,b) => a-b);
 
         // Set annualViewYear to the most recent synced year
         if (window.syncedYears.length > 0) {
