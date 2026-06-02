@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>שם טוב פיננסים</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="שם טוב">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <!-- Google Fonts: Outfit and Heebo for Hebrew -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">$</div>
+                <h2>שם טוב פיננסים</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" id="nav-dashboard">
+                    <span class="icon">🏠</span> לוח בקרה
+                </a>
+                <a href="#" class="nav-item" id="nav-transactions-list">
+                    <span class="icon">💸</span> תנועות
+                </a>
+                <a href="#" class="nav-item" id="nav-charts">
+                    <span class="icon">📈</span> ניתוח גרפי
+                </a>
+                <a href="#" class="nav-item" id="nav-portfolio">
+                    <span class="icon">🏦</span> הון וחסכונות
+                </a>
+                <a href="#" class="nav-item" id="nav-annual">
+                    <span class="icon">📅</span> דוח שנתי
+                </a>
+                <a href="#" class="nav-item" id="nav-compare">
+                    <span class="icon">📊</span> השוואה בין שנים
+                </a>
+                <a href="#" class="nav-item" id="nav-entry">
+                    <span class="icon">✏️</span> עריכת חודש
+                </a>
+                <a href="#" class="nav-item" id="btn-open-settings">
+                    <span class="icon">⚙️</span> הגדרות גוגל דרייב
+                </a>
+            </nav>
+            <div class="sync-status-sidebar">
+                <div class="status-indicator" id="sidebar-status-dot"></div>
+                <div class="status-text">
+                    <div class="status-title" id="sidebar-status-text">טוען נתונים...</div>
+                    <div class="status-time" id="sidebar-last-sync">לא סונכרן לאחרונה</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-bar">
+                <div class="welcome-text">
+                    <h1>מעקב פיננסי משפחתי</h1>
+                    <p id="current-date"></p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="btn-sync-now">
+                        <span class="btn-icon" id="sync-spinner">🔄</span>
+                        סנכרן מגוגל שיטס
+                    </button>
+                    <button class="btn btn-primary" id="btn-add-transaction-modal">
+                        <span class="btn-icon">➕</span>
+                        תנועה חדשה
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Grid View -->
+            <div class="content-body" id="dashboard-view">
+                <!-- Period Navigator -->
+                <div class="period-bar">
+                    <button class="period-btn" id="btn-prev-month" title="חודש קודם">&#8250;</button>
+                    <select id="period-month-select" class="period-month-select" title="בחר חודש"></select>
+                    <select id="period-year-select"  class="period-year-select"  title="בחר שנה"></select>
+                    <button class="period-btn" id="btn-next-month" title="חודש הבא">&#8249;</button>
+                    <span class="period-sep">|</span>
+                    <button class="btn btn-text" id="btn-go-annual">דוח שנתי ←</button>
+                </div>
+
+                <!-- Summary Metrics Grid -->
+                <section class="metrics-grid">
+                    <div class="metric-card income">
+                        <div class="metric-header">
+                            <span class="metric-title">סה"כ הכנסות החודש</span>
+                            <span class="metric-icon">📈</span>
+                        </div>
+                        <div class="metric-value" id="metric-total-income">₪0.00</div>
+                        <div class="metric-trend positive" id="income-percentage">משכורות ותוספות</div>
+                    </div>
+                    <div class="metric-card expense">
+                        <div class="metric-header">
+                            <span class="metric-title">סה"כ הוצאות החודש</span>
+                            <span class="metric-icon">📉</span>
+                        </div>
+                        <div class="metric-value" id="metric-total-expense">₪0.00</div>
+                        <div class="metric-trend negative" id="expense-percentage">חיובים שוטפים</div>
+                    </div>
+                    <div class="metric-card balance">
+                        <div class="metric-header">
+                            <span class="metric-title">יתרה שנותרה</span>
+                            <span class="metric-icon">💰</span>
+                        </div>
+                        <div class="metric-value" id="metric-balance">₪0.00</div>
+                        <div class="metric-trend" id="balance-status">יתרה חיובית</div>
+                    </div>
+                    <div class="metric-card savings">
+                        <div class="metric-header">
+                            <span class="metric-title">שיעור חיסכון</span>
+                            <span class="metric-icon">🏦</span>
+                        </div>
+                        <div class="metric-value" id="metric-savings-rate">0%</div>
+                        <div class="metric-progress-container">
+                            <div class="metric-progress-bar" id="savings-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="charts-grid">
+                    <div class="chart-card">
+                        <h3>חלוקת הוצאות לפי קטגוריות</h3>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3 id="trend-chart-title">הכנסות מול הוצאות — לפי חודש</h3>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Investment / Savings Summary -->
+                <section class="savings-summary-card" id="savings-summary-section">
+                    <div class="card-header">
+                        <h3>השקעות וחסכונות משפחתיים</h3>
+                        <span class="savings-update-badge" id="savings-update-badge">—</span>
+                    </div>
+                    <div class="savings-grid">
+                        <!-- Family total -->
+                        <div class="savings-person-card family-card">
+                            <div class="savings-person-header">
+                                <span class="savings-person-icon">👨‍👩‍👧‍👦</span>
+                                <span class="savings-person-name">משפחה (נכסים)</span>
+                            </div>
+                            <div class="savings-person-total" id="sp-family-total">₪0</div>
+                            <div class="savings-breakdown" id="sp-family-breakdown"></div>
+                        </div>
+                        <!-- Roni -->
+                        <div class="savings-person-card">
+                            <div class="savings-person-header">
+                                <span class="savings-person-icon">👧</span>
+                                <span class="savings-person-name">רוני</span>
+                            </div>
+                            <div class="savings-person-total" id="sp-roni-total">₪0</div>
+                            <div class="savings-breakdown" id="sp-roni-breakdown"></div>
+                        </div>
+                        <!-- Miki -->
+                        <div class="savings-person-card">
+                            <div class="savings-person-header">
+                                <span class="savings-person-icon">👦</span>
+                                <span class="savings-person-name">מיקי</span>
+                            </div>
+                            <div class="savings-person-total" id="sp-miki-total">₪0</div>
+                            <div class="savings-breakdown" id="sp-miki-breakdown"></div>
+                        </div>
+                        <!-- Zohar -->
+                        <div class="savings-person-card">
+                            <div class="savings-person-header">
+                                <span class="savings-person-icon">👶</span>
+                                <span class="savings-person-name">זוהר</span>
+                            </div>
+                            <div class="savings-person-total" id="sp-zohar-total">₪0</div>
+                            <div class="savings-breakdown" id="sp-zohar-breakdown"></div>
+                        </div>
+                    </div>
+                    <!-- Savings growth chart (portfolio) -->
+                    <div class="chart-container" style="height:220px; margin: 1rem 0 0.5rem;">
+                        <canvas id="savingsGrowthChart"></canvas>
+                    </div>
+
+                    <!-- Savings expense chart (חסכונות category) -->
+                    <h4 style="font-size:0.9rem; font-weight:700; color:var(--text-secondary); margin: 1.5rem 0 0.5rem;">
+                        הפקדות חסכונות — לפי חודש (שנה נבחרת)
+                    </h4>
+                    <div class="chart-container" style="height:190px; margin-bottom:0.5rem;">
+                        <canvas id="savingsExpenseChart"></canvas>
+                    </div>
+
+                    <!-- Grand total bar -->
+                    <div class="savings-grand-total">
+                        <span>סה"כ כלל הנכסים וההשקעות המשפחתיות</span>
+                        <span class="savings-grand-amount" id="sp-grand-total">₪0</span>
+                    </div>
+                </section>
+
+                <!-- Recent Transactions Summary Table -->
+                <section class="recent-transactions-card">
+                    <div class="card-header">
+                        <h3>תנועות אחרונות</h3>
+                        <button class="btn btn-text" id="btn-view-all-transactions">הצג את כל התנועות ←</button>
+                    </div>
+                    <div class="rotate-hint">
+                        <span class="rotate-icon">&#8635;</span> הטה את הטלפון לרוחב לצפייה מלאה בטבלה
+                    </div>
+                    <div class="table-container">
+                        <table class="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>תאריך</th>
+                                    <th>תיאור</th>
+                                    <th>קטגוריה</th>
+                                    <th>סוג</th>
+                                    <th class="amount-col">סכום</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-transactions-tbody">
+                                <!-- Dynamic JS rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Full Transactions View (Hidden by default) -->
+            <div class="content-body hidden" id="transactions-view">
+                <section class="filter-card">
+                    <h3>סינון וחיפוש תנועות</h3>
+                    <div class="filter-grid">
+                        <div class="filter-group">
+                            <label for="filter-search">חיפוש חופשי</label>
+                            <input type="text" id="filter-search" placeholder="חפש לפי תיאור...">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-category">קטגוריה</label>
+                            <select id="filter-category">
+                                <option value="all">הכל</option>
+                                <!-- Categories populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-type">סוג</label>
+                            <select id="filter-type">
+                                <option value="all">הכל</option>
+                                <option value="הכנסה">הכנסות</option>
+                                <option value="הוצאה">הוצאות</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="recent-transactions-card">
+                    <div class="rotate-hint">
+                        <span class="rotate-icon">&#8635;</span> הטה את הטלפון לרוחב לצפייה מלאה בטבלה
+                    </div>
+                    <div class="table-container">
+                        <table class="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>תאריך</th>
+                                    <th>תיאור</th>
+                                    <th>קטגוריה</th>
+                                    <th>סוג</th>
+                                    <th class="amount-col">סכום</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-transactions-tbody">
+                                <!-- Dynamic JS rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Full Portfolio View (Hidden by default) -->
+            <div class="content-body hidden" id="portfolio-view">
+                <!-- Summary metrics -->
+                <section class="metrics-grid">
+                    <div class="metric-card savings">
+                        <div class="metric-header"><span class="metric-title">סה"כ נכסים משפחתיים</span><span class="metric-icon">💎</span></div>
+                        <div class="metric-value" id="metric-net-worth">₪0.00</div>
+                        <div class="metric-trend positive" id="net-worth-update-time">—</div>
+                    </div>
+                    <div class="metric-card balance">
+                        <div class="metric-header"><span class="metric-title">סה"כ חסכונות ילדים</span><span class="metric-icon">🧒</span></div>
+                        <div class="metric-value" id="metric-kids-savings">₪0.00</div>
+                        <div class="metric-trend positive">רוני · מיקי · זוהר</div>
+                    </div>
+                </section>
+
+                <!-- Family assets table -->
+                <section class="portfolio-person-section family-section">
+                    <div class="portfolio-person-header">
+                        <span class="portfolio-person-icon">👨‍👩‍👧‍👦</span>
+                        <span class="portfolio-person-name">נכסים משפחתיים</span>
+                        <span class="portfolio-person-total badge badge-income" id="family-assets-total">₪0</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="transactions-table">
+                            <thead><tr><th>נכס</th><th class="amount-col">שווי</th></tr></thead>
+                            <tbody id="roni-assets-tbody-placeholder" style="display:none"></tbody>
+                            <tbody id="family-assets-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Children: one full card each -->
+                <div class="portfolio-children-grid">
+                    <!-- Roni -->
+                    <section class="portfolio-person-section roni-section">
+                        <div class="portfolio-person-header">
+                            <span class="portfolio-person-icon">👧</span>
+                            <span class="portfolio-person-name">רוני</span>
+                            <span class="portfolio-person-total badge badge-income" id="roni-total-badge">₪0</span>
+                        </div>
+                        <div class="table-container">
+                            <table class="transactions-table">
+                                <thead><tr><th>נכס</th><th class="amount-col">שווי</th></tr></thead>
+                                <tbody id="roni-assets-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Miki -->
+                    <section class="portfolio-person-section miki-section">
+                        <div class="portfolio-person-header">
+                            <span class="portfolio-person-icon">👦</span>
+                            <span class="portfolio-person-name">מיקי</span>
+                            <span class="portfolio-person-total badge badge-income" id="miki-total-badge">₪0</span>
+                        </div>
+                        <div class="table-container">
+                            <table class="transactions-table">
+                                <thead><tr><th>נכס</th><th class="amount-col">שווי</th></tr></thead>
+                                <tbody id="miki-assets-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Zohar -->
+                    <section class="portfolio-person-section zohar-section">
+                        <div class="portfolio-person-header">
+                            <span class="portfolio-person-icon">👶</span>
+                            <span class="portfolio-person-name">זוהר</span>
+                            <span class="portfolio-person-total badge badge-income" id="zohar-total-badge">₪0</span>
+                        </div>
+                        <div class="table-container">
+                            <table class="transactions-table">
+                                <thead><tr><th>נכס</th><th class="amount-col">שווי</th></tr></thead>
+                                <tbody id="zohar-assets-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- hidden canvases kept for JS compatibility -->
+                <canvas id="netWorthTrendChart" style="display:none"></canvas>
+                <canvas id="assetBreakdownChart" style="display:none"></canvas>
+            </div>
+
+            <!-- Year Comparison View -->
+            <div class="content-body hidden" id="comparison-view">
+                <section class="cmp-controls-card">
+                    <h3>בחר שנים להשוואה</h3>
+                    <div class="cmp-selectors">
+                        <select id="cmp-year-1" class="cmp-select"></select>
+                        <span class="vs-badge">VS</span>
+                        <select id="cmp-year-2" class="cmp-select"></select>
+                        <button class="btn btn-primary" id="btn-run-compare">השווה ←</button>
+                    </div>
+                </section>
+
+                <!-- Summary metrics (2 cols per card) -->
+                <section class="metrics-grid" id="cmp-metrics" style="display:none;">
+                    <div class="metric-card income">
+                        <div class="metric-header"><span class="metric-title">הכנסות שנתיות</span><span class="metric-icon">📈</span></div>
+                        <div class="cmp-values">
+                            <div class="cmp-val"><span class="cmp-year-label" id="cmp-y1-label-a">—</span><span class="cmp-amount income" id="cmp-income-y1">—</span></div>
+                            <div class="cmp-val"><span class="cmp-year-label" id="cmp-y2-label-a">—</span><span class="cmp-amount income" id="cmp-income-y2">—</span></div>
+                        </div>
+                        <div class="metric-trend" id="cmp-income-diff">—</div>
+                    </div>
+                    <div class="metric-card expense">
+                        <div class="metric-header"><span class="metric-title">הוצאות שנתיות</span><span class="metric-icon">📉</span></div>
+                        <div class="cmp-values">
+                            <div class="cmp-val"><span class="cmp-year-label" id="cmp-y1-label-b">—</span><span class="cmp-amount expense" id="cmp-expense-y1">—</span></div>
+                            <div class="cmp-val"><span class="cmp-year-label" id="cmp-y2-label-b">—</span><span class="cmp-amount expense" id="cmp-expense-y2">—</span></div>
+                        </div>
+                        <div class="metric-trend" id="cmp-expense-diff">—</div>
+                    </div>
+                    <div class="metric-card balance">
+                        <div class="metric-header"><span class="metric-title">פער (הכנסות − הוצאות)</span><span class="metric-icon">💰</span></div>
+                        <div class="cmp-values">
+                            <div class="cmp-val"><span class="cmp-year-label" id="cmp-y1-label-c">—</span><span class="cmp-amount" id="cmp-gap-y1">—</span></div>
+                            <div class="cmp-val"><span class="cmp-year-label" id="cmp-y2-label-c">—</span><span class="cmp-amount" id="cmp-gap-y2">—</span></div>
+                        </div>
+                        <div class="metric-trend" id="cmp-gap-diff">—</div>
+                    </div>
+                    <div class="metric-card savings">
+                        <div class="metric-header"><span class="metric-title">שיעור חיסכון</span><span class="metric-icon">🏦</span></div>
+                        <div class="cmp-values">
+                            <div class="cmp-val"><span class="cmp-year-label" id="cmp-y1-label-d">—</span><span class="cmp-amount" id="cmp-save-y1">—</span></div>
+                            <div class="cmp-val"><span class="cmp-year-label" id="cmp-y2-label-d">—</span><span class="cmp-amount" id="cmp-save-y2">—</span></div>
+                        </div>
+                        <div class="metric-trend" id="cmp-save-diff">—</div>
+                    </div>
+                </section>
+
+                <!-- Charts row -->
+                <section class="charts-grid" id="cmp-charts" style="display:none;">
+                    <div class="chart-card">
+                        <h3 id="cmp-bar-title">השוואת קטגוריות</h3>
+                        <div class="chart-container"><canvas id="cmpBarChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3 id="cmp-line-title">פער חודשי — השוואה</h3>
+                        <div class="chart-container"><canvas id="cmpLineChart"></canvas></div>
+                    </div>
+                </section>
+
+                <!-- Detailed comparison table -->
+                <section class="annual-report-card" id="cmp-table-section" style="display:none;">
+                    <div class="card-header"><h3 id="cmp-table-title">טבלת השוואה מפורטת</h3></div>
+                    <div class="rotate-hint">
+                        <span class="rotate-icon">&#8635;</span> הטה את הטלפון לרוחב לצפייה מלאה בטבלה
+                    </div>
+                    <div class="annual-table-wrapper">
+                        <table class="annual-table" id="cmp-table"></table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Annual Report View -->
+            <div class="content-body hidden" id="annual-view">
+        <section class="annual-report-card">
+            <div class="card-header">
+                <h3>דוח תזרים שנתי מלא</h3>
+                <div class="year-nav">
+                    <button class="period-btn" id="btn-next-year">&#8249;</button>
+                    <span class="year-display" id="annual-year-label">2026</span>
+                    <button class="period-btn" id="btn-prev-year">&#8250;</button>
+                </div>
+            </div>
+            <div class="annual-table-wrapper">
+                <table class="annual-table" id="annual-table"></table>
+            </div>
+        </section>
+
+        <section class="metrics-grid" id="annual-summary-grid" style="margin-top: 2rem;">
+            <div class="metric-card income">
+                <div class="metric-header"><span class="metric-title">סה"כ הכנסות שנתי</span><span class="metric-icon">📈</span></div>
+                <div class="metric-value" id="annual-total-income">₪0</div>
+                <div class="metric-trend positive" id="annual-avg-income">ממוצע חודשי: —</div>
+            </div>
+            <div class="metric-card expense">
+                <div class="metric-header"><span class="metric-title">סה"כ הוצאות שנתי</span><span class="metric-icon">📉</span></div>
+                <div class="metric-value" id="annual-total-expense">₪0</div>
+                <div class="metric-trend negative" id="annual-avg-expense">ממוצע חודשי: —</div>
+            </div>
+            <div class="metric-card balance">
+                <div class="metric-header"><span class="metric-title">פער שנתי</span><span class="metric-icon">💰</span></div>
+                <div class="metric-value" id="annual-gap">₪0</div>
+                <div class="metric-trend" id="annual-gap-label">—</div>
+            </div>
+            <div class="metric-card savings">
+                <div class="metric-header"><span class="metric-title">שיעור חיסכון ממוצע</span><span class="metric-icon">🏦</span></div>
+                <div class="metric-value" id="annual-savings-rate">0%</div>
+                <div class="metric-progress-container">
+                    <div class="metric-progress-bar" id="annual-savings-bar" style="width:0%"></div>
+                </div>
+            </div>
+        </section>
+            <!-- Month Entry View -->
+            <div class="content-body hidden" id="entry-view">
+                <section class="entry-controls-card">
+                    <h3>עריכת נתוני חודש</h3>
+                    <div class="entry-selectors">
+                        <div class="entry-sel-group">
+                            <label>שנה</label>
+                            <select id="entry-year" class="cmp-select"></select>
+                        </div>
+                        <div class="entry-sel-group">
+                            <label>חודש</label>
+                            <select id="entry-month" class="cmp-select">
+                                <option value="1">ינואר</option>
+                                <option value="2">פברואר</option>
+                                <option value="3">מרץ</option>
+                                <option value="4">אפריל</option>
+                                <option value="5" selected>מאי</option>
+                                <option value="6">יוני</option>
+                                <option value="7">יולי</option>
+                                <option value="8">אוגוסט</option>
+                                <option value="9">ספטמבר</option>
+                                <option value="10">אוקטובר</option>
+                                <option value="11">נובמבר</option>
+                                <option value="12">דצמבר</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-secondary" id="btn-entry-load">טען נתונים קיימים</button>
+                    </div>
+                </section>
+
+                <div id="entry-form-area" style="display:none">
+                    <section class="entry-section-card">
+                        <div class="entry-section-header expense-header">📉 הוצאות</div>
+                        <div id="entry-expense-rows" class="entry-rows"></div>
+                        <button class="btn btn-add-row" id="btn-add-expense">+ הוסף קטגוריה</button>
+                    </section>
+
+                    <section class="entry-section-card">
+                        <div class="entry-section-header income-header">📈 הכנסות</div>
+                        <div id="entry-income-rows" class="entry-rows"></div>
+                        <button class="btn btn-add-row" id="btn-add-income">+ הוסף קטגוריה</button>
+                    </section>
+
+                    <div class="entry-actions">
+                        <div id="entry-status" class="entry-status"></div>
+                        <button class="btn btn-primary btn-save-month" id="btn-save-month">💾 שמור לגיליון</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- settings modal -->
+    <div class="modal-overlay hidden" id="settings-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>הגדרות חיבור ל-Google Sheets</h2>
+                <button class="close-btn" id="btn-close-settings">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    חבר את לוח הבקרה לקובץ הגוגל שיטס החי שלך בדרייב. ודא כי קובץ ה-<code>credentials.json</code> שהורדת נמצא בתיקיית הפרויקט וכי שיתפת את הגיליון עם כתובת האימייל של חשבון השירות.
+                </p>
+                <form id="settings-form">
+                    <div class="form-group">
+                        <label for="sheet-id-input">מזהה קובץ גוגל שיטס (Google Sheet ID)</label>
+                        <input type="text" id="sheet-id-input" placeholder="למשל: 1aBcDeFgHiJkLmNoPqRsTuVwXyZ" required>
+                        <small class="form-help">זהו קוד התווים המופיע בקישור של הגיליון בין <code>/d/</code> לבין <code>/edit</code>.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="sheet-name-input">שם הגיליון (Sheet Name)</label>
+                        <input type="text" id="sheet-name-input" placeholder="למשל: גיליון1 או Transactions" value="גיליון1" required>
+                    </div>
+                    
+                    <div class="status-box connection-status">
+                        <div class="status-row">
+                            <span class="label">קובץ אישורים (credentials.json):</span>
+                            <span class="value" id="cred-status">בודק...</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="label">סנכרון אחרון:</span>
+                            <span class="value" id="modal-last-sync">לא בוצע סנכרון</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="btn-test-connection">בדוק חיבור</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-settings">שמור הגדרות</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- add transaction modal -->
+    <div class="modal-overlay hidden" id="transaction-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>הוספת תנועה חדשה</h2>
+                <button class="close-btn" id="btn-close-transaction">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    הוסף תנועה חדשה ישירות לגיליון (סנכרון ישיר ל-Google Sheets יתבצע בעת שמירת השינויים).
+                </p>
+                <form id="transaction-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="t-date">תאריך</label>
+                            <input type="date" id="t-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="t-type">סוג תנועה</label>
+                            <select id="t-type" required>
+                                <option value="הוצאה">הוצאה</option>
+                                <option value="הכנסה">הכנסה</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="t-category">קטגוריה</label>
+                            <select id="t-category" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="t-amount">סכום (₪)</label>
+                            <input type="number" id="t-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="t-desc">תיאור</label>
+                        <input type="text" id="t-desc" placeholder="למשל: סופרמרקט שופרסל, תשלום מים וכדומה" required>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="btn-cancel-transaction">ביטול</button>
+                        <button type="submit" class="btn btn-primary">שמור תנועה</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Execution Script -->
+    <script src="app.js"></script>
+
+    <!-- Register Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered', reg.scope))
+                    .catch(err => console.warn('SW failed', err));
+            });
+        }
+    </script>
+</body>
+</html>
