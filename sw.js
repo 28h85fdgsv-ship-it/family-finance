@@ -1,4 +1,4 @@
-const CACHE = 'shem-tov-v7';
+const CACHE = 'shem-tov-v8';
 
 const STATIC = [
     './',
