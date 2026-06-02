@@ -772,12 +772,14 @@ function renderPortfolio() {
     const zoharTotal  = fillTable('zohar-assets-tbody',  pData.zohar_assets  || {});
 
     const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    const grandTotal = familyTotal + roniTotal + mikiTotal + zoharTotal;
     setEl('family-assets-total', formatCurrency(familyTotal));
     setEl('roni-total-badge',    formatCurrency(roniTotal));
     setEl('miki-total-badge',    formatCurrency(mikiTotal));
     setEl('zohar-total-badge',   formatCurrency(zoharTotal));
-    setEl('metric-net-worth',    formatCurrency(familyTotal));
+    setEl('metric-net-worth',    formatCurrency(grandTotal));
     setEl('metric-kids-savings', formatCurrency(roniTotal + mikiTotal + zoharTotal));
+    setEl('sp-grand-total',      formatCurrency(grandTotal));
 }
 
 // ── Central period refresh — updates every table/chart to selectedYear+Month ──
