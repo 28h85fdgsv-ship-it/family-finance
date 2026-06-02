@@ -816,15 +816,17 @@ function populatePeriodYearSelect() {
         });
     }
 
-    // Populate year dropdown
+    // Populate year dropdown - always repopulate if data available
     const years = (window.syncedYears || []).slice().sort((a, b) => b - a);
-    if (years.length > 0 && yearSel.options.length === 0) {
+    if (years.length > 0) {
+        yearSel.innerHTML = '';
         years.forEach(y => {
             const opt = document.createElement('option');
             opt.value = y;
             opt.textContent = y;
             yearSel.appendChild(opt);
         });
+        yearSel.value = annualViewYear;
     }
 
     updatePeriodDisplay();
