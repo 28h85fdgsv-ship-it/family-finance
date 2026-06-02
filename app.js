@@ -1,4 +1,5 @@
 // State Management
+const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || '';
 let transactionsData = [];
 let localTransactions = JSON.parse(localStorage.getItem('local_transactions')) || [];
 let sheetConfig = JSON.parse(localStorage.getItem('sheet_config')) || { id: '', name: 'הוצאות הכנסות 2026' };
@@ -1552,7 +1553,8 @@ async function saveMonth() {
     btn.disabled = true;
 
     try {
-        const res = await fetch('/api/save-month', {
+        const apiUrl = APPS_SCRIPT_URL || '/api/save-month';
+        const res = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ year, month, data, new_cats })
@@ -1569,7 +1571,9 @@ async function saveMonth() {
         }
     } catch (err) {
         if (err.message.includes('Failed to fetch')) {
-            status.textContent = 'שגיאה: שרת לא זמין. ודא שהפעלת את "פתח דוח.command"';
+            status.textContent = APPS_SCRIPT_URL 
+                ? 'שגיאה בחיבור ל-Google Sheets'
+                : 'שגיאה: שרת לא זמין. ודא שהפעלת את "פתח דוח.command"';
         } else {
             status.textContent = `שגיאה: ${err.message}`;
         }
