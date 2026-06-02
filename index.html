@@ -571,12 +571,9 @@
     <!-- Register Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(regs => {
-                if (regs.length > 0) {
-                    Promise.all(regs.map(r => r.unregister())).then(() => {
-                        caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))).then(() => location.reload(true));
-                    });
-                }
+            navigator.serviceWorker.register('./sw.js');
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (e.data && e.data.type === 'RELOAD') location.reload(true);
             });
         }
     </script>
